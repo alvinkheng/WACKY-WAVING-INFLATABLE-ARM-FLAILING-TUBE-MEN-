@@ -17,19 +17,19 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 	//defines the heuristic used to value a state
 	public abstract double getHeuristic(MachineState state, long timeout) throws TransitionDefinitionException, MoveDefinitionException, GoalDefinitionException;
 	public abstract double getHeuristicPOST(MachineState state, long timeout) throws TransitionDefinitionException, MoveDefinitionException, GoalDefinitionException;
-    
+
 	//names the player
 	public abstract String getName();
-    
-	private static final int MAX_SCORE = 100;
+
+	protected static final int MAX_SCORE = 100;
 	private static final int STATES_TO_EXPAND = 64;
 	private static final int CALCULATION_BUFFER = 1000;
-    
+
 	protected long _stopTime;
 	private int _numStatesExpanded;
 	private int _levelsToExpand;
 	protected List<Role> _oppRoles;
-    
+
 	public class Move_Node {
 		public double value;
 		public Move move;
@@ -38,19 +38,19 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 			this.move = move;
 		}
 	}
-    
+
 	@Override
 	public StateMachine getInitialStateMachine() {	
 		return new ProverStateMachine();
 	}
-    
+
 	@Override
 	public void stateMachineAbort() {}
-    
+
 	@Override
 	public void stateMachineMetaGame(long timeout)
-    throws TransitionDefinitionException, MoveDefinitionException,
-    GoalDefinitionException {
+			throws TransitionDefinitionException, MoveDefinitionException,
+			GoalDefinitionException {
 		_oppRoles = new ArrayList<Role>();
 		for (Role role : getStateMachine().getRoles()) {
 			if (!role.equals(getRole())) {
@@ -59,12 +59,12 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		}
 		/* ***************NOT DOING METAGAMING YET************************/
 	}
-    
+
 	@Override
 	public Move stateMachineSelectMove(long timeout)
-    throws TransitionDefinitionException, MoveDefinitionException,
-    GoalDefinitionException {
-        
+			throws TransitionDefinitionException, MoveDefinitionException,
+			GoalDefinitionException {
+
 		_stopTime = timeout - CALCULATION_BUFFER;
 		_numStatesExpanded = 0;
 		
@@ -78,12 +78,12 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		//System.out.println("Pre->Post");
 		_levelsToExpand = 0;
 		List<Double> moveScoresPOST = getMovePOST(getCurrentState(), timeout, legalMoves);
-        
+
 		if(moveScores.isEmpty() && moveScoresPOST.isEmpty()){
-            //	System.out.println("FAILED TO GET MOVE");
+		//	System.out.println("FAILED TO GET MOVE");
 			return getStateMachine().getRandomMove(getCurrentState(), getRole());
 		}
-        
+
 		int indexOfBestScore = 0;
 		double bestscore = 0;
 		for(int i = 0; i<legalMoves.size(); i++) {
@@ -103,10 +103,10 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		//	System.out.println("pre "+i+" : " + moveScores.get(i));
 		//	System.out.println("post "+i+" : " + moveScoresPOST.get(i));
 		//	System.out.println("score "+i+" : " + finalScore.get(i));
-        
+
 		return legalMoves.get(indexOfBestScore);
 	}	
-    
+
 	/*
 	 * Selects the move with the highest minimax value from the available moves
 	 * for this state.  This is essentially a copy of maxScore which tracks moves.
@@ -118,14 +118,14 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		List<Double> ScoreList = new ArrayList<Double>();
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/legalMoves.size();
-        
+
 		//Put minScore for each legal move into array and return array
 		for(int i = 0; i<legalMoves.size(); i++){  //PREPROCESSING (IE NON-MONTE CARLO HEURISTICS)
 			ScoreList.add(minScore(legalMoves.get(i), currState, 0, curr_time + (i+1)*time_step));
 		}
 		return ScoreList;
 	}
-    
+
 	/*
 	 * Function to control the depth of expansion.  
 	 * Currently not very interesting.
@@ -133,9 +133,9 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 	private boolean stopExpanding(MachineState state, int level, long timeout){
 		return (System.currentTimeMillis() >= timeout-CALCULATION_BUFFER 
 				|| _numStatesExpanded >= STATES_TO_EXPAND)
-        || level > _levelsToExpand;
+				|| level > _levelsToExpand;
 	}
-    
+
 	/*
 	 * Gets the max possible score for a given role at this state
 	 * Level is the number of times to allow recursion, at this level
@@ -147,15 +147,15 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 			return getStateMachine().getGoal(state, getRole());
 		}
 		if(stopExpanding(state, level, timeout)) {
-            //	System.out.println("heuristic");
+		//	System.out.println("heuristic");
 			return getHeuristic(state, timeout); 
 		}
 		
 		List<Move> legalMoves = getStateMachine().getLegalMoves(state, getRole());
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/legalMoves.size();
-        //	System.out.println("timestep_inmax: "+time_step);
-        
+	//	System.out.println("timestep_inmax: "+time_step);
+
 		double maxVal = 0;
 		//choose the move with the max value against a rational player
 		for(int i = 0; i<legalMoves.size(); i++){
@@ -178,7 +178,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/jointMoves.size();
 		//System.out.println("timestep_inmin: "+time_step);
-        
+
 		for(int i = 0; i<jointMoves.size(); i++){
 			List<Move> jointMove = jointMoves.get(i);
 			_numStatesExpanded++;
@@ -187,7 +187,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		}
 		return minVal;
 	}
-    
+
 	/*
 	 * Selects the move with the highest minimax value from the available moves
 	 * for this state.  This is essentially a copy of maxScore which tracks moves.
@@ -199,7 +199,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		List<Double> ScoreList = new ArrayList<Double>();
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/legalMoves.size();
-        
+
 		//Put minScore for each legal move into array and return array
 		for(int i = 0; i<legalMoves.size(); i++){  //POSTPROCESSING (IE MONTE CARLO HEURISTICS)
 			ScoreList.add(minScorePOST(legalMoves.get(i), currState, 0, curr_time + (i+1)*time_step));
@@ -214,14 +214,14 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 	 */
 	private double maxScorePOST(MachineState state, int level, long timeout) throws GoalDefinitionException, TransitionDefinitionException, MoveDefinitionException{
 		if(getStateMachine().isTerminal(state)){ //base case 
-            //	System.out.println("terminal");
+		//	System.out.println("terminal");
 			return getStateMachine().getGoal(state, getRole());
 		}
 		if(stopExpanding(state, level, timeout)) {
 			//System.out.println("heuristic");
 			return getHeuristicPOST(state, timeout); 
 		}
-        
+
 		List<Move> legalMoves = getStateMachine().getLegalMoves(state, getRole());
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/legalMoves.size();
@@ -232,9 +232,9 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		for(int i = 0; i<legalMoves.size(); i++){
 			Move move = legalMoves.get(i);
 			double currVal = minScorePOST(move, state, level, curr_time + (i+1)*time_step);
-            
+
 			if(System.currentTimeMillis() >= _stopTime) return getHeuristicPOST(state, timeout);
-            
+
 			if(currVal > maxVal) maxVal = currVal;			
 		}
 		return maxVal;
@@ -251,7 +251,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		long curr_time = System.currentTimeMillis();
 		long time_step = (timeout-curr_time)/jointMoves.size();
 		//System.out.println("timestep_inmin: "+time_step);
-        
+
 		for(int i = 0; i<jointMoves.size(); i++){
 			List<Move> jointMove = jointMoves.get(i);
 			_numStatesExpanded++;
@@ -260,7 +260,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 		}
 		return minVal;
 	}
-    
+
 	@Override
 	public void stateMachineStop() {
 	}
