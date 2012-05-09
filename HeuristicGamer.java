@@ -87,12 +87,6 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 			if (moveScoresPOST.size() > i) {
 				score += ((moveScoresPOST.get(i)+100) * 3)/5;  //THIS IS THE MONTE RATIO PART
 			}			
-            //			if (moveScores.size() >= i-1) {
-            //				score += (moveScores.get(i) * 2)/5;    //RANDOM RATIO FOR HEURISTICS VS MONTE
-            //			}
-            //			if (moveScoresPOST.size() >= i-1) {
-            //				score += ((moveScoresPOST.get(i)+100) * 3)/5;  //THIS IS THE MONTE RATIO PART
-            //			}
 			if (score > bestscore) {
 				indexOfBestScore = i;
 				bestscore = score;
