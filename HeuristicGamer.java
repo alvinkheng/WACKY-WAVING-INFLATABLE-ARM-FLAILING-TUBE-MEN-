@@ -28,6 +28,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 	protected long _stopTime;
 	private int _numStatesExpanded;
 	private int _levelsToExpand;
+	protected List<Role> _oppRoles;
     
 	public class Move_Node {
 		public double value;
@@ -50,6 +51,12 @@ public abstract class HeuristicGamer extends StateMachineGamer {
 	public void stateMachineMetaGame(long timeout)
     throws TransitionDefinitionException, MoveDefinitionException,
     GoalDefinitionException {
+		_oppRoles = new ArrayList<Role>();
+		for (Role role : getStateMachine().getRoles()) {
+			if (!role.equals(getRole())) {
+				_oppRoles.add(role);
+			}
+		}
 		/* ***************NOT DOING METAGAMING YET************************/
 	}
     
@@ -114,8 +121,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
         
 		//Put minScore for each legal move into array and return array
 		for(int i = 0; i<legalMoves.size(); i++){  //PREPROCESSING (IE NON-MONTE CARLO HEURISTICS)
-			Move move = legalMoves.get(i);
-			ScoreList.add(minScore(move, currState, 0, curr_time + (i+1)*time_step));
+			ScoreList.add(minScore(legalMoves.get(i), currState, 0, curr_time + (i+1)*time_step));
 		}
 		return ScoreList;
 	}
@@ -196,8 +202,7 @@ public abstract class HeuristicGamer extends StateMachineGamer {
         
 		//Put minScore for each legal move into array and return array
 		for(int i = 0; i<legalMoves.size(); i++){  //POSTPROCESSING (IE MONTE CARLO HEURISTICS)
-			Move move = legalMoves.get(i);
-			ScoreList.add(minScorePOST(move, currState, 0, curr_time + (i+1)*time_step));
+			ScoreList.add(minScorePOST(legalMoves.get(i), currState, 0, curr_time + (i+1)*time_step));
 		}
 		return ScoreList;
 	}
